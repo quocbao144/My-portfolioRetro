@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Videographer Portfolio - Quốc Bảo</title>
+    
+    <!-- Nhúng phông chữ từ Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Font Playball cho phong cách Retro/Vintage dễ đọc hơn -->
+    <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Playball&family=Montserrat:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- BIẾN MÀU SẮC CSS --- */
+        :root {
+            --bg-color: #1a1614;
+            --grad-center: #3a2e28;
+            --grad-edge: #0a0807;
+            --text-main: #ffffff;
+            --subtitle-color: #b3b3b3;
+            --cam-opacity: 0.08;
+            --cam-blend: screen;
+            --light-leak: rgba(200, 100, 30, 0.4);
+            --text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            --scanline-color: rgba(0,0,0,0.1);
+            --polaroid-bg: #e8e8e8;
+        }
+
+        /* Chế độ sáng */
+        body.light-mode {
+            --bg-color: #e6dfd8;
+            --grad-center: #fdfaf6;
+            --grad-edge: #d5cbc2;
+            --text-main: #2a221d;
+            --subtitle-color: #6a5a4e;
+            --cam-opacity: 0.05;
+            --cam-blend: multiply;
+            --light-leak: rgba(255, 200, 150, 0.6);
+            --text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --scanline-color: rgba(255,255,255,0.3);
+            --polaroid-bg: #ffffff;
+        }
+
+        /* --- CÀI ĐẶT CƠ BẢN --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { 
+            scroll-behavior: smooth; 
+            /* Ẩn thanh cuộn cho Firefox & IE */
+            scrollbar-width: none; 
+            -ms-overflow-style: none; 
+        }
+        /* Ẩn thanh cuộn cho Chrome, Safari và Edge */
+        html::-webkit-scrollbar { display: none; }
+        
+        body {
+            width: 100%;
+            overflow-x: hidden; 
+            background-color: var(--bg-color);
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-main);
+            transition: background-color 0.5s ease, color 0.5s ease;
+            line-height: 1.6;
+            /* Ẩn thanh cuộn cho Firefox & IE trên body */
+            scrollbar-width: none; 
+            -ms-overflow-style: none;
+        }
+        /* Ẩn thanh cuộn cho Chrome, Safari và Edge trên body */
+        body::-webkit-scrollbar { display: none; }
+
+        /* --- HIỆU ỨNG NỀN CỐ ĐỊNH --- */
+        .background, .noise-overlay, .scanlines, .light-leak, .camera-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
+        }
+        .background { background: radial-gradient(circle at center, var(--grad-center) 0%, var(--grad-edge) 80%); z-index: 1; }
+        .noise-overlay { z-index: 2; opacity: 0.15; background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E'); }
+        .scanlines { background: linear-gradient(to bottom, transparent 50%, var(--scanline-color) 50%); background-size: 100% 4px; z-index: 3; }
+        .light-leak { bottom: -10%; right: -10%; background: radial-gradient(circle, var(--light-leak) 0%, transparent 70%); filter: blur(60px); z-index: 2; }
+        .camera-bg { background-size: contain; background-repeat: no-repeat; opacity: var(--cam-opacity); mix-blend-mode: var(--cam-blend); z-index: 1; }
+        .cam1 { top: -5%; left: -5%; width: 40vw; height: 40vw; background-image: url('https://images.unsplash.com/photo-1516961642265-531546e84af2?q=80&w=800&auto=format&fit=crop'); transform: rotate(-15deg); }
+        .cam2 { bottom: -10%; right: -5%; width: 40vw; height: 40vw; background-image: url('https://images.unsplash.com/photo-1526178613552-2b45c6c302f0?q=80&w=800&auto=format&fit=crop'); transform: rotate(20deg); }
+
+        /* --- THANH ĐIỀU HƯỚNG --- */
+        .top-nav {
+            position: fixed; top: 0; left: 0; width: 100%; padding: 1.5rem 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000; font-family: 'Space Mono', monospace;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        .logo { font-size: 1.2rem; font-weight: 900; cursor: pointer; transition: transform 0.2s; user-select: none; z-index: 1001;}
+        .logo:active { transform: scale(1.1); }
+        
+        .nav-right { display: flex; align-items: center; gap: 2rem; }
+        .nav-links { display: flex; align-items: center; gap: 2rem; transition: 0.3s ease; }
+        .nav-links a { color: var(--text-main); text-decoration: none; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; transition: 0.3s; font-weight: 700; }
+        .nav-links a:hover { opacity: 0.6; }
+        
+        .controls { display: flex; gap: 0.5rem; align-items: center; z-index: 1001; }
+        .controls button { background: none; border: 1px solid var(--text-main); color: var(--text-main); padding: 0.3rem 0.6rem; cursor: pointer; font-size: 0.75rem; border-radius: 12px; transition: 0.3s; line-height: 1; }
+        .controls button:hover { background: var(--text-main); color: var(--bg-color); }
+
+        .menu-toggle { display: none; flex-direction: column; gap: 5px; cursor: pointer; z-index: 1001; }
+        .menu-toggle span { display: block; width: 25px; height: 2px; background-color: var(--text-main); transition: 0.3s; }
+
+        /* --- BỐ CỤC CHUNG --- */
+        section { position: relative; width: 100%; z-index: 10; padding: 120px 5%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 1400px; margin: 0 auto; }
+
+        /* --- 1. HERO SECTION --- */
+        .hero-section { height: 100vh; padding: 0; overflow: hidden; }
+        .hero-text { text-align: center; z-index: 20; max-width: 90vw; pointer-events: none; }
+        .hero-text .script-text { font-family: 'Alex Brush', cursive; font-size: clamp(2.5rem, 5vw, 4rem); margin-bottom: -0.8rem; transform: rotate(-3deg); text-shadow: var(--text-shadow); }
+        .hero-text .main-title { font-size: clamp(3rem, 10vw, 8rem); line-height: 0.9; text-shadow: var(--text-shadow); }
+        .hero-text .subtitle { font-family: 'Space Mono', monospace; font-size: clamp(0.7rem, 2vw, 1rem); margin-top: 1rem; color: var(--subtitle-color); letter-spacing: 0.2em; text-transform: uppercase; }
+
+        .gallery { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .polaroid { 
+            position: absolute; background: var(--polaroid-bg); padding: 10px 10px 35px 10px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); opacity: 0; pointer-events: auto;
+            transition: transform 0.4s ease, box-shadow 0.4s ease, opacity 1s ease;
+        }
+        .polaroid img { width: clamp(120px, 15vw, 250px); height: auto; aspect-ratio: 4/5; object-fit: cover; filter: grayscale(40%) sepia(10%); transition: 0.4s; }
+        .polaroid:hover { z-index: 100 !important; transform: scale(1.05) !important; filter: grayscale(0%); }
+        
+        .p1 { top: 15%; left: 8%; transform: rotate(-10deg); }
+        .p2 { top: 50%; left: 2%; transform: rotate(18deg); }
+        .p3 { bottom: 10%; left: 15%; transform: rotate(-8deg); }
+        .p4 { top: 12%; right: 8%; transform: rotate(15deg); }
+        .p5 { bottom: 15%; right: 8%; transform: rotate(-12deg); }
+
+        /* --- 2. ABOUT SECTION --- */
+        .about-section { gap: 100px; padding-top: 150px; }
+        .about-container { display: flex; align-items: center; justify-content: space-between; gap: 4rem; max-width: 1200px; width: 100%; position: relative; }
+        .section-floating-title { position: absolute; top: -60px; left: -20px; font-weight: 900; opacity: 0.1; font-size: clamp(3rem, 8vw, 6rem); color: var(--text-main); pointer-events: none; z-index: 0; white-space: nowrap; }
+
+        .about-image { flex: 1; display: flex; justify-content: center; position: relative; z-index: 2; }
+        .stacked-container, .shuffle-wrapper { position: relative; width: clamp(250px, 30vw, 350px); height: auto; }
+        .p-stack-bg { position: absolute; top: 15px; left: -15px; width: 100%; height: 100%; background: var(--polaroid-bg); box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 1; opacity: 0.8; transform: rotate(-5deg); }
+        .main-photo-wrap { position: relative; background: var(--polaroid-bg); padding: 12px 12px 45px 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.6); transform: rotate(3deg); z-index: 2; transition: 0.4s ease; }
+        .main-photo-wrap img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+        .main-photo-wrap:hover { transform: rotate(0deg) scale(1.02); }
+
+        .about-content { flex: 1.2; text-align: left; position: relative; z-index: 2; }
+        .about-content .small-script { font-family: 'Playball', cursive; font-size: clamp(2rem, 4vw, 3rem); margin-bottom: -0.5rem; }
+        .about-content .medium-title { font-size: clamp(1.8rem, 4vw, 3rem); line-height: 1.1; margin-bottom: 1rem; text-transform: uppercase; font-weight: 900;}
+        .about-content .name-script { font-family: 'Playball', cursive; font-size: clamp(2.5rem, 5vw, 4rem); color: var(--text-main); margin-bottom: 1.5rem; }
+        .about-paragraph { font-family: 'Space Mono', monospace; font-size: clamp(0.85rem, 1.5vw, 1rem); color: var(--subtitle-color); border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1.5rem; text-align: justify; line-height: 1.8; }
+
+        .shuffle-bg-layer { position: absolute; top: 15px; left: -20px; width: 100%; height: 100%; background: var(--polaroid-bg); opacity: 0.6; transform: rotate(-10deg); box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 0; }
+        .shuffle-cards { position: relative; width: 100%; height: 100%; z-index: 1; aspect-ratio: 4/5;}
+        .card { position: absolute; background: var(--polaroid-bg); padding: 10px 10px 40px 10px; width: 100%; transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .card img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+        .c-back { transform: rotate(-6deg) translate(-10px, 10px); z-index: 1; }
+        .c-front { transform: rotate(5deg) translate(10px, -5px); z-index: 2; }
+        .shuffle-cards:hover .c-back { transform: rotate(4deg) translate(25px, -25px); z-index: 3; }
+        .shuffle-cards:hover .c-front { transform: rotate(-5deg) translate(-25px, 25px); z-index: 1; }
+
+        .paperclip { position: absolute; width: 30px; height: auto; z-index: 5; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3)); }
+
+        /* --- 3. PROJECT SECTION --- */
+        .project-section { min-height: auto; padding-bottom: 150px; }
+        .project-header { text-align: center; margin-bottom: 4rem; width: 100%; }
+        .project-header .script-text { font-family: 'Playball', cursive; font-size: clamp(2.2rem, 4vw, 3.5rem); margin-bottom: -0.5rem; }
+        .project-header .main-title { font-size: clamp(1.2rem, 3vw, 2.2rem); max-width: 900px; line-height: 1.4; opacity: 0.9; margin: 0 auto; font-weight: 900; }
+        
+        .project-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; width: 100%; max-width: 1300px; margin: 0 auto; }
+        .polaroid-project { background: var(--polaroid-bg); padding: 12px 12px 55px 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); transition: 0.4s; position: relative; }
+        .polaroid-project:nth-child(4n+1) { transform: rotate(-2deg); }
+        .polaroid-project:nth-child(4n+2) { transform: rotate(2deg); }
+        .polaroid-project:nth-child(4n+3) { transform: rotate(-1.5deg); }
+        .polaroid-project:nth-child(4n) { transform: rotate(2.5deg); }
+        .polaroid-project:hover { transform: rotate(0deg) scale(1.05); z-index: 20; box-shadow: 0 15px 30px rgba(0,0,0,0.7); cursor: pointer; }
+        .polaroid-project img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
+        .polaroid-caption { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; font-family: 'Space Mono', monospace; color: #1a1614; font-weight: 900; font-size: clamp(0.7rem, 1vw, 0.85rem); text-transform: uppercase; padding: 0 5px; }
+
+        /* --- 4. CONTACT SECTION --- */
+        .contact-section { height: 100vh; padding: 0; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+        .contact-header { text-align: center; z-index: 20; margin-bottom: 2rem; width: 100%; padding: 0 20px;}
+        .contact-header .main-title { font-size: clamp(3.5rem, 8vw, 8rem); line-height: 1; margin-bottom: 0.5rem; text-transform: uppercase; font-weight: 900;}
+        .contact-header .subtitle { font-family: 'Space Mono', monospace; font-size: clamp(0.8rem, 2vw, 1rem); color: var(--subtitle-color); opacity: 0.8; margin-bottom: 3rem; }
+        
+        .contact-cards { display: flex; justify-content: center; flex-wrap: wrap; gap: 2rem; width: 100%; max-width: 1000px; z-index: 20; margin-bottom: 4rem; }
+        .info-card { background: transparent; padding: 1rem; text-align: center; transition: 0.3s ease; text-decoration: none; color: inherit; cursor: pointer; flex: 1; min-width: 250px; max-width: 350px;}
+        .info-card:hover { transform: translateY(-8px); opacity: 0.7; }
+        .card-icon { margin-bottom: 1.5rem; color: var(--text-main); }
+        .card-icon svg { width: 45px; height: 45px; fill: currentColor; }
+        .card-value { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: clamp(1rem, 2vw, 1.2rem); margin-bottom: 1rem; letter-spacing: 0.05em; word-break: break-all; }
+        .card-label { font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #ff4d4d; letter-spacing: 0.2em; }
+        
+        .social-row { display: flex; justify-content: center; gap: 3rem; z-index: 20; padding-top: 2rem; width: 100%; max-width: 400px; }
+        .social-row a { color: var(--text-main); opacity: 0.6; transition: 0.3s ease; }
+        .social-row a:hover { opacity: 1; transform: scale(1.2) translateY(-3px); }
+        .social-row svg { width: 32px; height: 32px; fill: currentColor; }
+        .thank-you-msg { margin-top: 3rem; font-family: 'Playball', cursive; font-size: clamp(2rem, 4vw, 3rem); z-index: 20; opacity: 0.7; text-align: center; }
+
+        .contact-gallery { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+        .contact-stack-item { position: absolute; transition: 0.5s; }
+        .cs-bg { position: absolute; top: 10px; left: -10px; width: 100%; height: 100%; background: var(--polaroid-bg); box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 1; opacity: 0.7; }
+        .cs-main { position: relative; background: var(--polaroid-bg); padding: 10px 10px 35px 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); z-index: 2; }
+        .cs-main img { width: clamp(180px, 15vw, 250px); aspect-ratio: 3 / 2; object-fit: cover; filter: grayscale(20%); display: block; }
+        .contact-stack-item:hover { z-index: 10 !important; transform: scale(1.05) rotate(0deg) !important; }
+        .cp1 { top: 15%; left: 8%; transform: rotate(-12deg); } .cp2 { bottom: 15%; left: 10%; transform: rotate(8deg); }
+        .cp3 { top: 12%; right: 8%; transform: rotate(12deg); } .cp4 { bottom: 10%; right: 12%; transform: rotate(-10deg); }
+
+        /* --- MODAL DỰ ÁN (POPUP) THEO PHONG CÁCH CUỘN PHIM VINTAGE --- */
+        .project-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: 0.4s ease;
+            backdrop-filter: blur(8px);
+        }
+        .project-modal.active { opacity: 1; pointer-events: auto; }
+        
+        .close-modal {
+            position: absolute; top: 3vh; right: 3vw;
+            background: #f4ead5; 
+            border: 2px solid #3e2612; color: #3e2612;
+            width: 45px; height: 45px; border-radius: 50%;
+            font-size: 2rem; cursor: pointer; transition: 0.3s;
+            z-index: 99999; 
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: bold;
+        }
+        .close-modal:hover { background: #ff4d4d; color: #fff; border-color: #ff4d4d; transform: scale(1.1) rotate(90deg); }
+
+        .modal-content {
+            width: 95%; max-width: 1400px; 
+            max-height: 95vh;
+            background-color: #ebdcb9; /* Màu giấy cũ sậm hơn */
+            color: #4a3319; border-radius: 8px; 
+            overflow-y: auto; overflow-x: hidden; padding: 2rem 1.5rem;
+            position: relative; transform: translateY(50px); transition: 0.4s ease;
+            box-shadow: inset 0 0 120px rgba(70, 35, 10, 0.8), 0 20px 50px rgba(0,0,0,0.8);
+            background-image: 
+                radial-gradient(circle at center, transparent 20%, rgba(50, 20, 0, 0.4) 120%),
+                url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)" opacity="0.08"/%3E%3C/svg%3E');
+            /* Ẩn thanh cuộn trong Modal cho Firefox & IE */
+            scrollbar-width: none; 
+            -ms-overflow-style: none;
+        }
+
+        /* Lớp Overlay Texture Giấy Cổ thật sự chồng lên nền */
+        .modal-content::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('https://images.unsplash.com/photo-1586075010923-2dd4570fb338?q=80&w=1200&auto=format&fit=crop');
+            background-size: cover; background-position: center;
+            opacity: 0.25; mix-blend-mode: multiply; pointer-events: none; z-index: 0;
+        }
+
+        /* Ẩn thanh cuộn trong Modal cho Chrome, Safari và Edge */
+        .modal-content::-webkit-scrollbar { display: none; }
+        
+        .project-modal.active .modal-content { transform: translateY(0); }
+        
+        .modal-layout { 
+            display: grid; grid-template-columns: 1fr 2.5fr 1fr; gap: 2rem; align-items: start; 
+            position: relative; z-index: 1; /* Nổi lên trên lớp texture giấy */
+        }
+        
+        .center-content { display: flex; flex-direction: column; width: 100%; align-items: center; }
+        
+        .modal-title { 
+            font-family: 'Playball', cursive; 
+            font-size: clamp(1.8rem, 3vw, 2.7rem); /* Đã giảm size 40% */
+            margin-bottom: 0.5rem; text-align: center; font-weight: 400; 
+            color: #3e2612; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); line-height: 1.3;
+            width: 100%; letter-spacing: 0.05em; padding: 10px 0;
+        }
+
+        /* Hoa văn gạch ngang 2 đầu cho tiêu đề */
+        .modal-title::before, .modal-title::after {
+            content: '༄ ❁ ༄'; 
+            display: block; font-size: 1rem; color: rgba(62, 38, 18, 0.6); 
+            margin: 5px auto; letter-spacing: 5px; font-family: sans-serif;
+        }
+
+        .yt-fallback-btn {
+            display: inline-block; margin-bottom: 1.5rem; padding: 6px 18px;
+            font-family: 'Space Mono', monospace; font-size: 0.8rem; font-weight: 700;
+            color: #d32f2f; border: 1px solid #d32f2f; border-radius: 20px;
+            text-decoration: none; text-transform: uppercase; letter-spacing: 0.05em;
+            transition: 0.3s ease; text-align: center;
+        }
+        .yt-fallback-btn:hover {
+            background: #d32f2f; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3);
+        }
+        
+        .video-wrapper { 
+            position: relative; padding-bottom: 56.25%; height: 0; border-radius: 4px; 
+            overflow: hidden; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 8px solid #111; 
+            width: 100%;
+        }
+        .video-wrapper iframe { position: absolute; top:0; left: 0; width: 100%; height: 100%; }
+        
+        .film-strip-container {
+            background-color: #111; padding: 20px 25px; 
+            display: flex; flex-direction: column; gap: 15px;
+            position: relative; border-radius: 2px; 
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9), 0 10px 20px rgba(0,0,0,0.4);
+            max-height: 70vh; overflow-y: auto; overflow-x: hidden;
+        }
+        .film-strip-container::-webkit-scrollbar { width: 0px; }
+        
+        .film-strip-container::before, .film-strip-container::after {
+            content: ''; position: absolute; top: 0; bottom: 0; width: 12px; background-color: #111;
+            background-image: repeating-linear-gradient(to bottom, transparent 0px, transparent 10px, #f4ead5 10px, #f4ead5 20px); z-index: 1;
+        }
+        .film-strip-container::before { left: 5px; } 
+        .film-strip-container::after { right: 5px; }
+        
+        .film-strip-container img {
+            width: 100%; height: auto; aspect-ratio: 4/3; object-fit: cover; 
+            border: 2px solid #222; filter: grayscale(30%) sepia(20%);
+            position: relative; z-index: 2; transition: 0.3s; opacity: 0; transform: translateY(-20px);
+            animation: filmDrop 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            flex-shrink: 0;
+        }
+        .film-strip-container img:hover { filter: grayscale(0%) sepia(0%); transform: scale(1.05) !important; z-index: 10; cursor: pointer;}
+        @keyframes filmDrop { to { opacity: 1; transform: translateY(0); } }
+
+        /* --- PHẦN CLIP CÙNG CHỦ ĐỀ --- */
+        .related-videos-section {
+            margin-top: 3rem; padding-top: 2rem; border-top: 2px dashed rgba(74, 51, 25, 0.3); width: 100%;
+            position: relative; z-index: 1; /* Nổi lên trên lớp texture giấy */
+        }
+        .modal-gallery-title { 
+            font-family: 'Montserrat', sans-serif; font-size: 1.1rem; margin-bottom: 1.5rem; 
+            text-transform: uppercase; letter-spacing: 0.1em; font-weight: 900; color: #3e2612; text-align: center;
+        }
+        
+        .related-videos-list { 
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem; padding-bottom: 1rem;
+        }
+        
+        .related-video-item {
+            width: 100%; max-width: 250px; flex: 1 1 200px; 
+            aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); border: 2px solid #2a1f1a;
+            position: relative; cursor: pointer; transition: 0.3s;
+        }
+        .related-video-item::after {
+            content: '▶'; position: absolute; top: 40%; left: 50%;
+            transform: translate(-50%, -50%); color: white; font-size: 2.5rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8); opacity: 0.7; transition: 0.3s; pointer-events: none;
+        }
+        .related-video-item:hover { transform: translateY(-5px) scale(1.03); box-shadow: 0 10px 25px rgba(0,0,0,0.6); border-color: #ff4d4d; }
+        .related-video-item:hover::after { opacity: 1; transform: translate(-50%, -50%) scale(1.2); color: #ff4d4d; }
+        
+        .related-video-item img { width: 100%; height: 100%; object-fit: cover; background: #000; transition: 0.3s; }
+        .related-video-item:hover img { filter: brightness(50%); }
+
+        .related-video-title {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            color: #fff; padding: 20px 10px 10px 10px; font-size: 0.85rem; text-align: center;
+            font-family: 'Space Mono', monospace; font-weight: 700; text-transform: uppercase;
+            transform: translateY(100%); transition: 0.3s; pointer-events: none;
+            /* Cắt chữ nếu tiêu đề quá dài */
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .related-video-item:hover .related-video-title { transform: translateY(0); }
+
+        /* --- HIỆU ỨNG CUỘN --- */
+        .hidden-scroll { opacity: 0; transform: translateY(40px); transition: 1s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .show-scroll { opacity: 1; transform: translateY(0); }
+
+        /* Responsive */
+        @media (min-width: 1441px) { .container, .about-container, .project-grid { max-width: 1400px; } .hero-text .main-title { font-size: 9rem; } }
+        @media (max-width: 1023px) {
+            section { padding: 100px 5%; }
+            .project-grid { grid-template-columns: repeat(2, 1fr); gap: 3rem; max-width: 700px; }
+            .about-container { flex-direction: column; text-align: center; gap: 4rem; }
+            
+            .modal-layout { grid-template-columns: 1fr; gap: 1.5rem; }
+            .film-strip-container { flex-direction: row; padding: 25px 20px; overflow-x: auto; overflow-y: hidden; max-height: none;}
+            .film-strip-container::before, .film-strip-container::after {
+                top: 5px; bottom: auto; left: 0; right: 0; width: 100%; height: 12px;
+                background-image: repeating-linear-gradient(to right, transparent 0px, transparent 10px, #f4ead5 10px, #f4ead5 20px);
+            }
+            .film-strip-container::after { top: auto; bottom: 5px; }
+            .film-strip-container img { width: 180px; height: 135px; flex-shrink: 0; }
+        }
+        @media (max-width: 767px) {
+            section { padding: 80px 5%; }
+            .close-modal { top: 10px; right: 10px; width: 40px; height: 40px; font-size: 1.5rem; }
+            .menu-toggle { display: flex; }
+            .nav-right {
+                position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-color);
+                flex-direction: column; padding: 2rem 0; gap: 1.5rem; transform: translateY(-150%); opacity: 0; pointer-events: none;
+                transition: 0.4s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1);
+            }
+            .nav-right.active { transform: translateY(0); opacity: 1; pointer-events: auto; }
+            .nav-links { flex-direction: column; width: 100%; text-align: center; gap: 1.5rem; }
+            .hero-text .main-title { font-size: 3.5rem; }
+            .project-grid { grid-template-columns: 1fr; gap: 2.5rem; max-width: 320px; }
+            .contact-stack-item { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NỀN & HIỆU ỨNG -->
+    <div class="background"></div>
+    <div class="noise-overlay"></div>
+    <div class="scanlines"></div>
+    <div class="light-leak"></div>
+    <div class="camera-bg cam1"></div>
+    <div class="camera-bg cam2"></div>
+
+    <!-- MENU ĐIỀU HƯỚNG -->
+    <header class="top-nav">
+        <div class="logo">QUỐC BẢO</div>
+        <div class="menu-toggle" id="mobile-menu-btn"><span></span><span></span><span></span></div>
+        <div class="nav-right" id="nav-menu">
+            <nav class="nav-links">
+                <a href="#home" class="lang-text" data-vi="Trang chủ" data-en="Home">Home</a>
+                <a href="#about" class="lang-text" data-vi="Giới thiệu" data-en="About">About</a>
+                <a href="#project" class="lang-text" data-vi="Dự án" data-en="Project">Project</a>
+                <a href="#contact" class="lang-text" data-vi="Liên hệ" data-en="Contact">Contact</a>
+            </nav>
+            <div class="controls"><button id="lang-toggle">VI</button><button id="theme-toggle">☀️</button></div>
+        </div>
+    </header>
+
+    <!-- 1. PHẦN TRANG CHỦ -->
+    <section class="hero-section" id="home">
+        <div class="hero-text">
+            <h2 class="script-text lang-text" data-vi="Quay phim" data-en="Videographer">Videographer</h2>
+            <h1 class="main-title lang-text" data-vi="HỒ SƠ" data-en="PORTFOLIO">PORTFOLIO</h1>
+            <p class="subtitle lang-text" data-vi="DỰNG PHIM CHUYÊN NGHIỆP" data-en="VIDEO EDITOR">VIDEO EDITOR</p>
+        </div>
+        <div class="gallery hero-gallery">
+            <div class="polaroid p1" data-speed="0.05"><img src="https://i.ibb.co/TM942Csf/about1.jpg" alt="P1"></div>
+            <div class="polaroid p2" data-speed="-0.03"><img src="https://i.ibb.co/d4B0Kkrg/about6.jpg" alt="P2"></div>
+            <div class="polaroid p3" data-speed="0.06"><img src="https://i.ibb.co/99xHp5Z6/about5.jpg" alt="P3"></div>
+            <div class="polaroid p4" data-speed="-0.04"><img src="https://i.ibb.co/YFKRsb0B/about3.jpg" alt="P4"></div>
+            <div class="polaroid p5" data-speed="0.07"><img src="https://i.ibb.co/tTB0r946/490442868-3944181329161018-3471596136073199851-n.jpg" alt="P5"></div>
+        </div>
+    </section>
+
+    <!-- 2. PHẦN GIỚI THIỆU -->
+    <section class="about-section" id="about">
+        <div class="about-container hidden-scroll">
+            <div class="section-floating-title lang-text" data-vi="GIỚI THIỆU" data-en="ABOUT">ABOUT</div>
+            <div class="about-image">
+                <div class="stacked-container">
+                    <div class="p-stack-bg"></div>
+                    <div class="main-photo-wrap">
+                        <svg class="paperclip" style="top: -10px; left: 30px; transform: rotate(-20deg);" viewBox="0 0 22 66" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 54C12.5 58.6944 8.69442 62.5 4 62.5C-0.69442 62.5 -4.5 58.6944 -4.5 54L-4.5 16C-4.5 9.09644 1.09644 3.5 8 3.5C14.9036 3.5 20.5 9.09644 20.5 16L20.5 48C20.5 51.5899 17.5899 54.5 14 54.5C10.4101 54.5 7.5 51.5899 7.5 48L7.5 16" stroke="#888" stroke-width="3" stroke-linecap="round"/></svg>
+                        <img src="https://i.ibb.co/tTB0r946/490442868-3944181329161018-3471596136073199851-n.jpg" alt="Quốc Bảo Greeting">
+                    </div>
+                </div>
+            </div>
+            <div class="about-content">
+                <h3 class="small-script lang-text" data-vi="Gặp gỡ" data-en="Meet the">Meet the</h3>
+                <h2 class="main-title medium-title lang-text" data-vi="NGƯỜI DỰNG PHIM" data-en="VIDEOGRAPHER">VIDEOGRAPHER</h2>
+                <h1 class="name-script">Quốc Bảo</h1>
+                <p class="about-paragraph lang-text" data-vi="Xin chào, mình là Quốc Bảo. Mình đến với máy quay và phần mềm dựng phim bắt đầu từ sự tò mò, và rồi nó trở thành công việc gắn bó mỗi ngày. Mình thích ghi lại những khoảnh khắc chân thật và kể lại chúng qua những thước phim mượt mà. Dù cầm máy quay trên set hay edit hậu kỳ, mình luôn cố gắng đặt sự chỉn chu và cảm xúc vào từng khung hình." data-en="Hi, I'm Quốc Bảo. My journey with cameras and editing software started out of curiosity and has grown into a daily passion. I love capturing authentic moments and weaving them into smooth, sharp narratives. Whether I'm on set behind the lens or editing in the studio, I strive to pour dedication and emotion into every frame.">Xin chào, mình là Quốc Bảo...</p>
+            </div>
+        </div>
+
+        <div class="about-container hidden-scroll">
+            <div class="section-floating-title lang-text" data-vi="KINH NGHIỆM" data-en="EXPERIENCE">EXPERIENCE</div>
+            <div class="about-image">
+                <div class="shuffle-wrapper">
+                    <div class="shuffle-bg-layer"></div>
+                    <div class="shuffle-cards">
+                        <svg class="paperclip" style="top: -10px; right: 20px; transform: rotate(45deg);" viewBox="0 0 22 66" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 54C12.5 58.6944 8.69442 62.5 4 62.5C-0.69442 62.5 -4.5 58.6944 -4.5 54L-4.5 16C-4.5 9.09644 1.09644 3.5 8 3.5C14.9036 3.5 20.5 9.09644 20.5 16L20.5 48C20.5 51.5899 17.5899 54.5 14 54.5C10.4101 54.5 7.5 51.5899 7.5 48L7.5 16" stroke="#888" stroke-width="3" stroke-linecap="round"/></svg>
+                        <div class="card c-back"><img src="https://i.ibb.co/B5Tyrvj0/about2.jpg" alt="Experience 1"></div>
+                        <div class="card c-front"><img src="https://i.ibb.co/YFKRsb0B/about3.jpg" alt="Experience 2"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="about-content">
+                <p class="about-paragraph lang-text" data-vi="Tôi là một Video Creator có nền tảng tư duy logic từ chuyên ngành Công nghệ Thông tin (Đại học HUTECH), kết hợp với hơn 2 năm kinh nghiệm thực chiến trong lĩnh vực sản xuất hình ảnh. Xuất phát điểm là một biên tập viên tự học, tôi đã nhanh chóng chuyên nghiệp hóa kỹ năng qua các dự án đa dạng: từ weddings tại Fenik Studio, đến quản lý nội dung TikTok tại 61Plus. Đặc biệt, thời gian tại Forest Music Group đã giúp tôi nâng cao thẩm mỹ hình ảnh qua kỹ thuật Cinematic Framing và Color Grading chuyên sâu." data-en="I am a Video Creator with an IT background (HUTECH), combined with over 2 years of practical experience. Starting as a self-taught editor, I quickly professionalized my skills through diverse projects: from weddings at Fenik Studio to end-to-end TikTok production at 61Plus. Notably, my time at Forest Music Group helped elevate my visual aesthetics through advanced Cinematic Framing and Color Grading techniques.">Tôi là một Video Creator...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. PHẦN DỰ ÁN -->
+    <section class="project-section" id="project">
+        <div class="project-header hidden-scroll">
+            <h3 class="script-text lang-text" data-vi="Dự án nổi bật" data-en="Featured Projects">Featured Projects</h3>
+            <h2 class="main-title lang-text" data-vi="KHOẢNH KHẮC & CÂU CHUYỆN" data-en="AUTHENTIC MOMENTS & STORIES">AUTHENTIC MOMENTS & STORIES</h2>
+        </div>
+        <div class="project-grid">
+            <div class="polaroid-project hidden-scroll" data-id="event"><img src="https://i.ibb.co/7JDPw7LK/6.jpg" alt="Event"><p class="polaroid-caption">Event</p></div>
+            <div class="polaroid-project hidden-scroll" data-id="wedding"><img src="https://i.ibb.co/svwjrwsN/EDV02629.jpg" alt="Wedding"><p class="polaroid-caption">Wedding</p></div>
+            <div class="polaroid-project hidden-scroll" data-id="yep"><img src="https://i.ibb.co/v4SzvtS4/YEP-Early-Morning-00-01-00-07-Still005.jpg" alt="YEP"><p class="polaroid-caption">Year end Party</p></div>
+            <div class="polaroid-project hidden-scroll" data-id="dancing"><img src="https://i.ibb.co/WpWdCTPk/dancing.jpg" alt="Dancing"><p class="polaroid-caption">Dancing</p></div>
+            <div class="polaroid-project hidden-scroll" data-id="mv"><img src="https://i.ibb.co/hxm3wrFr/mv.jpg" alt="MV"><p class="polaroid-caption">Music Video</p></div>
+            <div class="polaroid-project hidden-scroll" data-id="flower"><img src="https://i.ibb.co/DHJ97064/flower.jpg" alt="Flower"><p class="polaroid-caption">Flower</p></div>
+            <div class="polaroid-project hidden-scroll" data-id="vlog"><img src="https://i.ibb.co/PZ4zpT5B/chillgirlvlog.jpg" alt="Vlog"><p class="polaroid-caption">Chill Vlog</p></div>
+            <div class="polaroid-project hidden-scroll" data-id="perf"><img src="https://i.ibb.co/5xhP9YCD/Audio-hi-n-tr-ng-Ch-m-em-m-t-i-00-03-17-15-Still004.jpg" alt="Perf"><p class="polaroid-caption" style="font-size: 0.65rem;">Music Performances</p></div>
+        </div>
+    </section>
+
+    <!-- 4. PHẦN LIÊN HỆ -->
+    <section class="contact-section" id="contact">
+        <div class="contact-header hidden-scroll">
+            <h1 class="main-title lang-text" data-vi="LIÊN HỆ" data-en="CONTACT">CONTACT</h1>
+            <p class="subtitle lang-text" data-vi="Bạn có ý tưởng thú vị? Hãy kết nối nhé." data-en="Got an interesting idea? Let's connect.">Got an interesting idea? Let's connect.</p>
+        </div>
+        
+        <div class="contact-cards hidden-scroll">
+            <a href="tel:0356502101" class="info-card">
+                <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.24.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></div>
+                <div class="card-value">0356502101</div>
+                <div class="card-label lang-text" data-vi="GỌI CHO MÌNH" data-en="CALL ME NOW">GỌI CHO MÌNH</div>
+            </a>
+            <a href="mailto:quocbao291200@gmail.com" class="info-card">
+                <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></div>
+                <div class="card-value">quocbao291200@gmail.com</div>
+                <div class="card-label lang-text" data-vi="GỬI EMAIL" data-en="SEND EMAIL">GỬI EMAIL</div>
+            </a>
+        </div>
+
+        <div class="social-row hidden-scroll">
+            <a href="https://www.facebook.com/NyMikiyoDo" target="_blank" title="Facebook"><svg viewBox="0 0 24 24"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z"/></svg></a>
+            <a href="https://www.tiktok.com/@quocbao157" target="_blank" title="TikTok"><svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.9-.32-1.98-.23-2.8.12-.95.41-1.64 1.35-1.7 2.39-.1 1.16.51 2.34 1.5 2.87.65.34 1.41.44 2.13.33 1.05-.12 2-.85 2.34-1.85.11-.33.15-.68.15-1.03-.01-4.57-.01-9.14-.02-13.71z"/></svg></a>
+            <a href="https://www.youtube.com/@CinematicVietnamRide" target="_blank" title="YouTube"><svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122-2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+        </div>
+
+        <div class="thank-you-msg hidden-scroll lang-text" data-vi="Cảm ơn bạn đã ghé thăm!" data-en="Thank you for visiting!">Cảm ơn bạn đã ghé thăm!</div>
+
+        <div class="contact-gallery">
+            <div class="contact-stack-item cp1"><div class="cs-bg"></div><div class="cs-main"><svg class="paperclip" viewBox="0 0 22 66" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 54C12.5 58.6944 8.69442 62.5 4 62.5C-0.69442 62.5 -4.5 58.6944 -4.5 54L-4.5 16C-4.5 9.09644 1.09644 3.5 8 3.5C14.9036 3.5 20.5 9.09644 20.5 16L20.5 48C20.5 51.5899 17.5899 54.5 14 54.5C10.4101 54.5 7.5 51.5899 7.5 48L7.5 16" stroke="#888" stroke-width="3" stroke-linecap="round"/></svg><img src="https://i.ibb.co/rRKzT94t/4.jpg" alt="Contact 4"></div></div>
+            <div class="contact-stack-item cp2"><div class="cs-bg"></div><div class="cs-main"><svg class="paperclip" viewBox="0 0 22 66" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 54C12.5 58.6944 8.69442 62.5 4 62.5C-0.69442 62.5 -4.5 58.6944 -4.5 54L-4.5 16C-4.5 9.09644 1.09644 3.5 8 3.5C14.9036 3.5 20.5 9.09644 20.5 16L20.5 48C20.5 51.5899 17.5899 54.5 14 54.5C10.4101 54.5 7.5 51.5899 7.5 48L7.5 16" stroke="#888" stroke-width="3" stroke-linecap="round"/></svg><img src="https://i.ibb.co/fYDvncNW/5.jpg" alt="Contact 5"></div></div>
+            <div class="contact-stack-item cp3"><div class="cs-bg"></div><div class="cs-main"><svg class="paperclip" viewBox="0 0 22 66" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 54C12.5 58.6944 8.69442 62.5 4 62.5C-0.69442 62.5 -4.5 58.6944 -4.5 54L-4.5 16C-4.5 9.09644 1.09644 3.5 8 3.5C14.9036 3.5 20.5 9.09644 20.5 16L20.5 48C20.5 51.5899 17.5899 54.5 14 54.5C10.4101 54.5 7.5 51.5899 7.5 48L7.5 16" stroke="#888" stroke-width="3" stroke-linecap="round"/></svg><img src="https://i.ibb.co/bgM72vKZ/2.jpg" alt="Contact 2"></div></div>
+            <div class="contact-stack-item cp4"><div class="cs-bg"></div><div class="cs-main"><svg class="paperclip" viewBox="0 0 22 66" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 54C12.5 58.6944 8.69442 62.5 4 62.5C-0.69442 62.5 -4.5 58.6944 -4.5 54L-4.5 16C-4.5 9.09644 1.09644 3.5 8 3.5C14.9036 3.5 20.5 9.09644 20.5 16L20.5 48C20.5 51.5899 17.5899 54.5 14 54.5C10.4101 54.5 7.5 51.5899 7.5 48L7.5 16" stroke="#888" stroke-width="3" stroke-linecap="round"/></svg><img src="https://i.ibb.co/yF6csPFJ/1.jpg" alt="Contact 1"></div></div>
+        </div>
+    </section>
+
+    <!-- MODAL CHI TIẾT DỰ ÁN -->
+    <div class="project-modal" id="project-modal">
+        <button class="close-modal" id="close-modal">&times;</button>
+        
+        <div class="modal-content" id="modal-scroll-area">
+            <div class="modal-layout">
+                <!-- Cột Trái: Cuộn phim 1 -->
+                <div class="film-strip-container" id="modal-gallery-left"></div>
+
+                <!-- Cột Giữa: Tiêu đề + Fallback YouTube + Video chính -->
+                <div class="center-content">
+                    <!-- Thêm class lang-text để JS bắt sự kiện đổi ngôn ngữ -->
+                    <h2 class="modal-title lang-text" id="modal-title">Tên Dự Án</h2>
+                    
+                    <a href="#" id="youtube-fallback-link" target="_blank" class="yt-fallback-btn lang-text" 
+                       data-vi="⚠ Màn hình đen? Nhấn để mở xem trực tiếp trên YouTube" 
+                       data-en="⚠ Black screen? Click to watch directly on YouTube">
+                        ⚠ Màn hình đen? Nhấn để mở xem trực tiếp trên YouTube
+                    </a>
+
+                    <div class="video-wrapper">
+                        <iframe id="modal-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                <!-- Cột Phải: Cuộn phim 2 -->
+                <div class="film-strip-container" id="modal-gallery-right"></div>
+            </div>
+
+            <!-- Phía dưới cùng: Clip cùng chủ đề -->
+            <div class="related-videos-section" id="related-videos-container" style="display: none;">
+                <!-- Dòng gợi ý cũng được hỗ trợ đa ngôn ngữ -->
+                <h3 class="modal-gallery-title lang-text" data-vi="CLIP CÙNG CHỦ ĐỀ" data-en="RELATED VIDEOS">CLIP CÙNG CHỦ ĐỀ</h3>
+                <div class="related-videos-list" id="modal-related-videos">
+                    <!-- Clip sẽ được sinh tự động bằng Javascript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KỊCH BẢN JAVASCRIPT -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- CÁC HIỆU ỨNG CƠ BẢN ---
+            const menuBtn = document.getElementById('mobile-menu-btn');
+            const navMenu = document.getElementById('nav-menu');
+            const navLinks = document.querySelectorAll('.nav-links a');
+            menuBtn.addEventListener('click', () => { menuBtn.classList.toggle('active'); navMenu.classList.toggle('active'); });
+            navLinks.forEach(link => { link.addEventListener('click', () => { menuBtn.classList.remove('active'); navMenu.classList.remove('active'); }); });
+
+            const langBtn = document.getElementById('lang-toggle');
+            let lang = 'vi'; // Ngôn ngữ mặc định
+            const updateLang = () => {
+                document.querySelectorAll('.lang-text').forEach(el => { 
+                    const content = el.getAttribute(`data-${lang}`); 
+                    if (content) el.innerHTML = content; 
+                });
+                langBtn.textContent = lang === 'en' ? 'VI' : 'EN';
+            };
+            langBtn.addEventListener('click', () => { lang = (lang === 'vi' ? 'en' : 'vi'); updateLang(); });
+            updateLang();
+
+            document.getElementById('theme-toggle').addEventListener('click', (e) => {
+                document.body.classList.toggle('light-mode');
+                e.target.textContent = document.body.classList.contains('light-mode') ? '🌙' : '☀️';
+            });
+
+            const obs = new IntersectionObserver(ents => { ents.forEach(ent => { if(ent.isIntersecting) ent.target.classList.add('show-scroll'); }); }, {threshold: 0.1});
+            document.querySelectorAll('.hidden-scroll').forEach(el => obs.observe(el));
+
+            const heroPhotos = document.querySelectorAll('.hero-section .polaroid');
+            const initialTransforms = Array.from(heroPhotos).map(p => window.getComputedStyle(p).transform);
+            heroPhotos.forEach((p, i) => { setTimeout(() => { p.style.opacity = '1'; }, 400 + i * 200); });
+            let curX = window.innerWidth/2, curY = window.innerHeight/2;
+            const updateParallax = () => {
+                if (window.innerWidth < 768 || window.scrollY > window.innerHeight) return;
+                const offX = (window.innerWidth/2 - curX) / 25; const offY = (window.innerHeight/2 - curY) / 25;
+                heroPhotos.forEach((p, i) => {
+                    if(window.getComputedStyle(p).display === 'none') return; 
+                    const speed = parseFloat(p.getAttribute('data-speed')) || 0.05;
+                    const scale = p.matches(':hover') ? 'scale(1.1)' : 'scale(1)';
+                    p.style.transform = `translate(${offX * speed * 100}px, ${offY * speed * 100}px) ${scale} ${initialTransforms[i]}`;
+                });
+            };
+            document.addEventListener('mousemove', (e) => { curX = e.pageX; curY = e.pageY; requestAnimationFrame(updateParallax); });
+            document.querySelector('.logo').addEventListener('click', () => window.scrollTo({top: 0, behavior:'smooth'}));
+
+
+            // =========================================================================
+            // CƠ SỞ DỮ LIỆU CÁC DỰ ÁN (ĐÃ NÂNG CẤP ĐA NGÔN NGỮ)
+            // =========================================================================
+            // Tên clip giờ là một Object chứa tiếng Việt (vi) và tiếng Anh (en)
+
+            const videoDatabase = [
+                // --- CHỦ ĐỀ: SỰ KIỆN QUY MÔ LỚN ---
+                {
+                    category: 'event',
+                    title: { vi: 'SỰ KIỆN QUY MÔ LỚN KẾT HỢP DANCING', en: 'LARGE SCALE EVENT WITH DANCING' },
+                    youtube: 'https://youtu.be/jfKfPfyJRdk',
+                    images: ['https://i.ibb.co/7JDPw7LK/6.jpg', 'https://i.ibb.co/vCFgYWrK/EDV02560.jpg', 'https://i.ibb.co/WpWdCTPk/dancing.jpg']
+                },
+                {
+                    category: 'event',
+                    title: { vi: 'Hậu trường Sự kiện (BTS)', en: 'Event Behind The Scenes (BTS)' },
+                    youtube: 'https://www.youtube.com/watch?v=ScMzIvxBSi4',
+                    images: ['https://i.ibb.co/7JDPw7LK/6.jpg', 'https://i.ibb.co/vCFgYWrK/EDV02560.jpg']
+                },
+
+                // --- CHỦ ĐỀ: YEAR END PARTY ---
+                {
+                    category: 'yep',
+                    title: { vi: 'YEP Early Morning', en: 'Early Morning YEP' }, 
+                    youtube: 'https://youtu.be/twefnOCBtQ8', 
+                    images: [
+                        'https://i.ibb.co/yn5xPGDZ/YEP-Early-Morning-00-04-02-26-Still010.jpg',
+                        'https://i.ibb.co/Kc1BFbWg/YEP-Early-Morning-00-03-44-14-Still011.jpg',
+                        'https://i.ibb.co/wNLQgcVt/YEP-Early-Morning-00-02-18-29-Still007.jpg',
+                        'https://i.ibb.co/v4SzvtS4/YEP-Early-Morning-00-01-00-07-Still005.jpg',
+                        'https://i.ibb.co/LzGBjrHS/YEP-Early-Morning-00-00-05-00-Still001.jpg'
+                    ]
+                },
+                {
+                    category: 'yep',
+                    title: { vi: 'YEP BIN Group', en: 'BIN Group YEP' }, 
+                    youtube: 'https://youtu.be/DWEsQK7eLFs', 
+                    images: [ 
+                        'https://i.ibb.co/yn5xPGDZ/YEP-Early-Morning-00-04-02-26-Still010.jpg',
+                        'https://i.ibb.co/Kc1BFbWg/YEP-Early-Morning-00-03-44-14-Still011.jpg',
+                        'https://i.ibb.co/wNLQgcVt/YEP-Early-Morning-00-02-18-29-Still007.jpg',
+                        'https://i.ibb.co/v4SzvtS4/YEP-Early-Morning-00-01-00-07-Still005.jpg',
+                        'https://i.ibb.co/LzGBjrHS/YEP-Early-Morning-00-00-05-00-Still001.jpg'
+                    ]
+                },
+
+                // --- CHỦ ĐỀ: DANCING ---
+                {
+                    category: 'dancing',
+                    title: { vi: 'Dancing Girl Careless Whisper', en: 'Dancing Girl Careless Whisper' },
+                    youtube: 'https://youtu.be/MtHPCFjUVTI',
+                    images: [
+                        'https://i.ibb.co/qF0hw8L1/Still-2025-10-10-161038-3-5-1.jpg',
+                        'https://i.ibb.co/60rTMkJ7/Still-2025-10-10-161038-3-4-1.jpg',
+                        'https://i.ibb.co/3Q8xknY/Still-2025-10-10-161038-2-20-1.jpg',
+                        'https://i.ibb.co/Ldg1Qrj0/Still-2025-10-10-161038-2-9-1.jpg',
+                        'https://i.ibb.co/rRKzT94t/4.jpg',
+                        'https://i.ibb.co/yF6csPFJ/1.jpg'
+                    ]
+                },
+                {
+                    category: 'dancing',
+                    title: { vi: "Dancing Girl Can't Get You Out Of My Head", en: "Dancing Girl Can't Get You Out Of My Head" },
+                    youtube: 'https://youtu.be/UMoxTv9CBiU',
+                    images: [ 
+                        'https://i.ibb.co/PZXpBpHX/anh10.jpg',
+                        'https://i.ibb.co/dJzbCY7x/anh6.jpg',
+                        'https://i.ibb.co/hFy7jmXJ/anh3.jpg',
+                        'https://i.ibb.co/HL7rD86y/bts2.jpg',
+                        'https://i.ibb.co/0VdJdpgd/bts3.jpg',
+                        'https://i.ibb.co/G4KsgWhJ/bts6.jpg'
+                    ]
+                },
+
+                // --- CHỦ ĐỀ: CƯỚI ---
+                { 
+                    category: 'wedding', 
+                    title: { vi: 'Lễ đính hôn Nick & Minh Anh', en: 'Nick & Minh Anh Engagement' }, 
+                    youtube: 'https://youtu.be/d4_oWRds-wI', 
+                    images: [
+                        'https://i.ibb.co/svwjrwsN/EDV02629.jpg', 
+                        'https://i.ibb.co/LMxjztz/EDV02385.jpg',
+                        'https://i.ibb.co/B2KdytLs/EDV02208.jpg',
+                        'https://i.ibb.co/r2XSdJG1/EDV02200.jpg',
+                        'https://i.ibb.co/sYzwQm3/EDV02142.jpg',
+                        'https://i.ibb.co/bMvBJYb1/HUY05681.jpg'
+                    ] 
+                },
+                { 
+                    category: 'wedding', 
+                    title: { vi: 'Wedding Nguyễn Thảo & Indo', en: 'Nguyen Thao & Indo Wedding' }, 
+                    youtube: 'https://youtu.be/-tCn1r_X6Q4', 
+                    images: [
+                        'https://i.ibb.co/svwjrwsN/EDV02629.jpg', 
+                        'https://i.ibb.co/LMxjztz/EDV02385.jpg',
+                        'https://i.ibb.co/B2KdytLs/EDV02208.jpg',
+                        'https://i.ibb.co/r2XSdJG1/EDV02200.jpg',
+                        'https://i.ibb.co/sYzwQm3/EDV02142.jpg',
+                        'https://i.ibb.co/bMvBJYb1/HUY05681.jpg'
+                    ] 
+                },
+
+                // --- CÁC CHỦ ĐỀ KHÁC ---
+                { category: 'mv', title: { vi: 'MUSIC VIDEO', en: 'MUSIC VIDEO' }, youtube: 'https://youtu.be/jfKfPfyJRdk', images: ['https://i.ibb.co/hxm3wrFr/mv.jpg'] },
+                { category: 'flower', title: { vi: 'FLOWER CONCEPT', en: 'FLOWER CONCEPT' }, youtube: 'https://youtu.be/ScMzIvxBSi4', images: ['https://i.ibb.co/DHJ97064/flower.jpg'] },
+                { category: 'vlog', title: { vi: 'CHILL VLOG SÀI GÒN', en: 'SAIGON CHILL VLOG' }, youtube: 'https://youtu.be/jfKfPfyJRdk', images: ['https://i.ibb.co/PZ4zpT5B/chillgirlvlog.jpg'] },
+                { category: 'perf', title: { vi: 'SÂN KHẤU BIỂU DIỄN', en: 'STAGE PERFORMANCE' }, youtube: 'https://youtu.be/ScMzIvxBSi4', images: ['https://i.ibb.co/5xhP9YCD/Audio-hi-n-tr-ng-Ch-m-em-m-t-i-00-03-17-15-Still004.jpg'] }
+            ];
+
+            // --- HÀM TỰ ĐỘNG XỬ LÝ LINK YOUTUBE VÀ LẤY ẢNH BÌA ---
+            function parseYouTube(url) {
+                if (!url) return { embed: '', thumb: '', id: '' };
+                const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+                const match = url.match(regExp);
+                const id = (match && match[2].length === 11) ? match[2] : null;
+                
+                if (id) {
+                    return {
+                        id: id,
+                        embed: `https://www.youtube.com/embed/${id}`,
+                        // Tự động lấy ảnh bìa chất lượng cao từ youtube
+                        thumb: `https://img.youtube.com/vi/${id}/mqdefault.jpg`
+                    };
+                }
+                return { embed: url, thumb: '', id: '' };
+            }
+
+            const modal = document.getElementById('project-modal');
+            const btnCloseModal = document.getElementById('close-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalVideo = document.getElementById('modal-video');
+            const fallbackLink = document.getElementById('youtube-fallback-link'); 
+            
+            const leftStrip = document.getElementById('modal-gallery-left'); 
+            const rightStrip = document.getElementById('modal-gallery-right');
+            const relatedVideos = document.getElementById('modal-related-videos');
+            const relatedContainer = document.getElementById('related-videos-container');
+            const modalScrollArea = document.getElementById('modal-scroll-area');
+
+            // --- HÀM XỬ LÝ ĐỔ DỮ LIỆU RA POPUP ---
+            const renderModalData = (mainVideoObj, allCategoryVideos) => {
+                const ytData = parseYouTube(mainVideoObj.youtube);
+
+                // Cập nhật thuộc tính đa ngôn ngữ cho Tiêu đề chính
+                modalTitle.setAttribute('data-vi', mainVideoObj.title.vi);
+                modalTitle.setAttribute('data-en', mainVideoObj.title.en);
+                
+                // Gắn link nhúng chuẩn
+                modalVideo.src = ytData.embed;
+
+                if(ytData.id) {
+                    fallbackLink.href = `https://www.youtube.com/watch?v=${ytData.id}`;
+                    fallbackLink.style.display = 'inline-block';
+                } else {
+                    fallbackLink.style.display = 'none';
+                }
+
+                // 1. Phân bổ ảnh vào 2 cuộn phim
+                leftStrip.innerHTML = ''; rightStrip.innerHTML = '';
+                let displayImages = [...(mainVideoObj.images || [])];
+                if (displayImages.length > 0) {
+                    while (displayImages.length < 6) displayImages = displayImages.concat(mainVideoObj.images);
+                    displayImages = displayImages.slice(0, 6);
+                }
+                displayImages.forEach((imgUrl, index) => {
+                    const delay = index * 0.15;
+                    const imgHTML = `<img src="${imgUrl}" alt="Frame" style="animation-delay: ${delay}s">`;
+                    if (index < 3) leftStrip.innerHTML += imgHTML;
+                    else rightStrip.innerHTML += imgHTML;
+                });
+
+                // 2. Xử lý các clip cùng chủ đề (Category)
+                relatedVideos.innerHTML = '';
+                
+                // Lọc bỏ clip đang chiếu ra khỏi danh sách bên dưới
+                const relatedArray = allCategoryVideos.filter(v => v.youtube !== mainVideoObj.youtube);
+
+                if (relatedArray.length > 0) {
+                    relatedArray.forEach((clip) => {
+                        const clipYtData = parseYouTube(clip.youtube);
+                        // BẮT BUỘC SỬ DỤNG ẢNH BÌA YOUTUBE CỦA CLIP ĐÓ
+                        const finalThumb = clipYtData.thumb; 
+
+                        const clipItem = document.createElement('div');
+                        clipItem.className = 'related-video-item';
+                        
+                        // Tiêu đề clip phụ cũng được thêm thuộc tính đa ngôn ngữ (data-vi, data-en)
+                        clipItem.innerHTML = `
+                            <img src="${finalThumb}" alt="${clip.title.en}">
+                            <div class="related-video-title lang-text" data-vi="${clip.title.vi}" data-en="${clip.title.en}"></div>
+                        `;
+                        
+                        // Đảo ngược vị trí khi bấm vào 1 clip phụ (Clip phụ lên hình to, clip đang coi xuống ô nhỏ)
+                        clipItem.addEventListener('click', () => {
+                            renderModalData(clip, allCategoryVideos);
+                            modalScrollArea.scrollTop = 0;
+                        });
+
+                        relatedVideos.appendChild(clipItem);
+                    });
+                    relatedContainer.style.display = 'block';
+                } else {
+                    relatedContainer.style.display = 'none'; 
+                }
+
+                // Gọi hàm updateLang() để áp dụng ngay ngôn ngữ hiện tại cho các text vừa được JS sinh ra
+                updateLang();
+            };
+
+            // Sự kiện click ở trang chủ để mở Popup
+            document.querySelectorAll('.polaroid-project').forEach(item => {
+                item.addEventListener('click', () => {
+                    const categoryId = item.getAttribute('data-id');
+                    
+                    // Lọc ra tất cả các clip có chung categoryId
+                    const categoryVideos = videoDatabase.filter(v => v.category === categoryId);
+
+                    if (categoryVideos.length > 0) {
+                        // Chọn video đầu tiên trong mảng tìm được làm video chiếu chính
+                        const mainVideo = categoryVideos[0];
+                        renderModalData(mainVideo, categoryVideos);
+                        modal.classList.add('active');
+                        document.body.style.overflow = 'hidden'; 
+                    }
+                });
+            });
+
+            // Sự kiện Đóng Popup
+            const closeModal = () => {
+                modal.classList.remove('active');
+                document.body.style.overflow = ''; 
+                setTimeout(() => { modalVideo.src = ''; }, 400); 
+            };
+            btnCloseModal.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target.id === 'project-modal') closeModal();
+            });
+        });
+    </script>
+</body>
+</html>
